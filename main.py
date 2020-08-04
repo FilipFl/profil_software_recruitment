@@ -1,9 +1,11 @@
 import json
 from datetime import date
 import calendar
+from db_handler import *
+import argparse
 
 
-class Task:
+class JsonParser:
 
     def __init__(self):
         self.data = None
@@ -34,7 +36,7 @@ class Task:
         for record in self.data['results']:
             birthday_date = record['dob']['date']
             days_remaining = self.calculate_days(today, birthday_date)
-            record['DaysToB-day'] = days_remaining
+            record['daysleft'] = days_remaining
 
     def calculate_days(self, today, date_str):
         bdday = date_str.split('T')
@@ -52,6 +54,22 @@ class Task:
             delta = birthday - today
         return delta.days
 
+    def get_data(self):
+        return self.data
+
 
 if __name__ == '__main__':
-    task = Task()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("N", type=int, help="Desired number")
+    parser.add_argument("argument", type=str, help="describing")
+    parser.add_argument("--percentage", help="Get percentage of women and men", action="store_true")
+    parser.add_argument("--init", help="Initialize database", action="store_true")
+    pars = JsonParser()
+    handle = DBHandler()
+    args = parser.parse_args()
+    if args.init:
+        handle.initialize_database(pars.get_data())
+    if args.percentage:
+        handle.get_percentage()
+
+

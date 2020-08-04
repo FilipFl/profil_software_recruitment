@@ -106,10 +106,10 @@ class Person(Model):
 
 class DBHandler:
 
-    def __init__(self, data):
+    def __init__(self):
         self.db = SqliteDatabase('recruitment_db.db')
         self.db.connect()
-        self.initialize_database(data)
+
 
     def initialize_database(self, data):
         self.db.create_tables([Person, Name, Location, Street, Coordinates, Timezone, Login, Dob, Registered, Idcolumn])
@@ -138,8 +138,11 @@ class DBHandler:
                          id=id_inst, nat=record['nat'], daysleft=record['daysleft'])
             i += 1
 
-    def get_sth(self):
-        person = Person.select().where(Person.email == 'louane.vidal@example.com').get()
-        return person.name.first
+    def get_percentage(self):
+        query = Person.select().where(Person.gender == "female")
+        all = Person.select()
+        message = "Percentage of male: {:.3f}% \n Percentage of female: {:.3f}%".format((len(all)-len(query))/len(all)*100,
+                                                                                        len(query)/len(all)*100)
+        print(message)
 
 
