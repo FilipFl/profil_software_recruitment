@@ -1,4 +1,5 @@
 from peewee import *
+from datetime import *
 import re
 
 
@@ -44,7 +45,7 @@ class Idcolumn(Model):
 
 
 class Registered(Model):
-    date = CharField()
+    date = DateField()
     age = IntegerField()
     person = ForeignKeyField(Person, backref='registered')
 
@@ -53,7 +54,7 @@ class Registered(Model):
 
 
 class Dob(Model):
-    date = CharField()
+    date = DateField()
     age = IntegerField()
     person = ForeignKeyField(Person, backref='dob')
 
@@ -141,8 +142,8 @@ class DBHandler:
                 Login.create(uuid=record['login']['uuid'], username=record['login']['username'], password=record['login']['password'],
                                           salt=record['login']['salt'], md5=record['login']['md5'],sha1=record['login']['sha1'],
                                           sha256=record['login']['sha256'], person=person_inst)
-                Dob.create(date=record['dob']['date'], age=record['dob']['age'], person=person_inst)
-                Registered.create(date=record['registered']['date'], age=record['registered']['age'], person=person_inst)
+                Dob.create(date=self.parse_date(record['dob']['date']), age=record['dob']['age'], person=person_inst)
+                Registered.create(date=self.parse_date(record['registered']['date']), age=record['registered']['age'], person=person_inst)
                 if record['id']['value'] is not None:
                     Idcolumn.create(name=record['id']['name'], value=record['id']['value'], person=person_inst)
                 else:
@@ -196,7 +197,7 @@ class DBHandler:
             val = self.evaluate_password(password_str)
             if val > best[1]:
                 best = [password_str, val]
-        print("The best pasword is \"{}\" with score {}".format(best[0], best[1]))
+        print("The best password is \"{}\" with score {}".format(best[0], best[1]))
 
     def evaluate_password(self, password):
         flags = [0 for i in range(5)]
@@ -212,6 +213,20 @@ class DBHandler:
             elif c.isdigit():
                 flags[2] = 1
         return sum(flags)
+
+    def parse_date(self, date_str):
+        date_str = date_str.split("T")
+        date_str = date_str[0].split("-")
+        return date(int(date_str[0]), int(date_str[1]), int(date_str[2]))
+
+    def get_between(self, start, end):
+        datetime_object = datetime.now()
+        print(datetime_object)
+        query = Person.select(Person.person_id, Name.first, Name.last).join(Name).switch(Person).join(Dob).where(Dob.date.between(start, end))
+        print(query)
+        for element in query:
+            print(element.name.first, element.name.last, element.person_id)
+
 
 
 

@@ -14,7 +14,6 @@ class JsonParser:
         self.parse_phone_number()
         self.delete_picture()
         self.days_to_bd()
-        self.con = None
 
     def read_file(self):
         file = open('persons.json', encoding="utf8")
@@ -74,9 +73,10 @@ if __name__ == '__main__':
     parser.add_argument("--most_common_cities", type=int, help="Get N most common cities")
     parser.add_argument("--most_common_passwords", type=int, help="Get N most common passwords")
     parser.add_argument("--best_password", help="Get the best password", action='store_true')
+    parser.add_argument("--born_between", type=str, help="Get people born between dates (Use format \"YYYY-MM-DD:YYYY-MM-DD\"")
+    parser.add_argument("--test", help="ble", action='store_true')
     handle = DBHandler()
     args = parser.parse_args()
-    pars = JsonParser()
     if args.init:
         pars = JsonParser()
         handle.initialize_database(pars.get_data())
@@ -96,6 +96,22 @@ if __name__ == '__main__':
         handle.get_common(args.most_common_passwords, 'password')
     if args.best_password:
         handle.get_best_password()
+    if args.born_between:
+        my_string = args.born_between
+        my_string = my_string.replace(':', '-')
+        my_string = my_string.split("-")
+        print(my_string)
+        try:
+            start = date(int(my_string[0]), int(my_string[1]), int(my_string[2]))
+            end = date(int(my_string[3]), int(my_string[4]), int(my_string[5]))
+        except ValueError:
+            msg = "Wrong argument, try \"YYYY-MM-DD:YYYY-MM-DD\" format"
+            raise argparse.ArgumentTypeError(msg)
+        handle.get_between(start, end)
+
+
+
+
 
 
 
