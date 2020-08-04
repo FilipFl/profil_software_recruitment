@@ -161,4 +161,13 @@ class DBHandler:
         msg = "Average age {} is {:.2f} years old.".format(description, value)
         print(msg)
 
+    def get_cities(self, amount):
+        query = Location.select(Location.city, fn.Count(Location.city).alias('quantity')).group_by(Location.city).order_by(fn.Count(Location.city).desc())
+        print('Most common {} cities.'.format(amount))
+        for index, loc in enumerate(query):
+            if index > amount-1:
+                break
+            print(loc.city, loc.quantity)
+
+
 

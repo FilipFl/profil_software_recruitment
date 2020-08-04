@@ -64,6 +64,8 @@ if __name__ == '__main__':
     parser.add_argument("--init", help="Initialize database", action="store_true")
     parser.add_argument("--average_age", type=str, help="Get average age (general, female, male)",
                         choices=['general','female','male'])
+    parser.add_argument("--most_common_cities", type=int, help="Get most common cities",
+                        default=1)
     pars = JsonParser()
     handle = DBHandler()
     args = parser.parse_args()
@@ -73,6 +75,11 @@ if __name__ == '__main__':
         handle.get_percentage()
     if args.average_age:
         handle.get_average_age(args.average_age)
+    if args.most_common_cities:
+        if args.most_common_cities < 0:
+            msg = "Wrong argument"
+            raise argparse.ArgumentTypeError(msg)
+        handle.get_cities(args.most_common_cities)
 
 
 
