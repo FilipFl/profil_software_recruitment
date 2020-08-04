@@ -60,10 +60,10 @@ class JsonParser:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("N", type=int, help="Desired number")
-    parser.add_argument("argument", type=str, help="describing")
     parser.add_argument("--percentage", help="Get percentage of women and men", action="store_true")
     parser.add_argument("--init", help="Initialize database", action="store_true")
+    parser.add_argument("--average_age", type=str, help="Get average age (general, female, male)",
+                        choices=['general','female','male'])
     pars = JsonParser()
     handle = DBHandler()
     args = parser.parse_args()
@@ -71,5 +71,10 @@ if __name__ == '__main__':
         handle.initialize_database(pars.get_data())
     if args.percentage:
         handle.get_percentage()
+    if args.average_age:
+        handle.get_average_age(args.average_age)
+
+
+
 
 
