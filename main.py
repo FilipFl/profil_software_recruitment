@@ -64,8 +64,8 @@ if __name__ == '__main__':
     parser.add_argument("--init", help="Initialize database", action="store_true")
     parser.add_argument("--average_age", type=str, help="Get average age (general, female, male)",
                         choices=['general','female','male'])
-    parser.add_argument("--most_common_cities", type=int, help="Get most common cities",
-                        default=1)
+    parser.add_argument("--most_common_cities", type=int, help="Get N most common cities")
+    parser.add_argument("--most_common_passwords", type=int, help="Get N most common passwords")
     pars = JsonParser()
     handle = DBHandler()
     args = parser.parse_args()
@@ -76,10 +76,15 @@ if __name__ == '__main__':
     if args.average_age:
         handle.get_average_age(args.average_age)
     if args.most_common_cities:
-        if args.most_common_cities < 0:
+        if args.most_common_cities < 1:
             msg = "Wrong argument"
             raise argparse.ArgumentTypeError(msg)
-        handle.get_cities(args.most_common_cities)
+        handle.get_common(args.most_common_cities, 'city')
+    if args.most_common_passwords:
+        if args.most_common_passwords < 1:
+            msg = "Wrong argument"
+            raise argparse.ArgumentTypeError(msg)
+        handle.get_common(args.most_common_passwords, 'password')
 
 
 
