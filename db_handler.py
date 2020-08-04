@@ -1,5 +1,13 @@
-import sqlite3
 from peewee import *
+import re
+
+
+class Password(Model):
+    password = CharField()
+    evaluation = IntegerField()
+
+    class Meta:
+        database = SqliteDatabase('recruitment_db.db')
 
 
 class Person(Model):
@@ -104,11 +112,14 @@ class Name(Model):
         database = SqliteDatabase('recruitment_db.db')
 
 
+
 class DBHandler:
 
     def __init__(self):
         self.db = SqliteDatabase('recruitment_db.db')
         self.db.connect()
+        self.special_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+
 
     def initialize_database(self, data):
         self.db.create_tables([Person, Name, Location, Street, Coordinates, Timezone, Login, Dob, Registered, Idcolumn])
@@ -177,7 +188,30 @@ class DBHandler:
             else:
                 print(element.password, element.quantity)
 
+    def get_best_password(self):
+        query = Login.select()
+        best = ['', 0]
+        for login in query:
+            password_str = login.password
+            val = self.evaluate_password(password_str)
+            if val > best[1]:
+                best = [password_str, val]
+        print("The best pasword is \"{}\" with score {}".format(best[0], best[1]))
 
+    def evaluate_password(self, password):
+        flags = [0 for i in range(5)]
+        if len(password) >= 8:
+            flags[3] = 5
+        if self.special_check.search(password) is not None:
+            flags[4] = 3
+        for c in password:
+            if c.islower():
+                flags[0] = 1
+            elif c.isupper():
+                flags[1] = 2
+            elif c.isdigit():
+                flags[2] = 1
+        return sum(flags)
 
 
 

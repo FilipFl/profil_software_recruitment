@@ -3,6 +3,7 @@ from datetime import date
 import calendar
 from db_handler import *
 import argparse
+import sqlite3
 
 
 class JsonParser:
@@ -13,6 +14,7 @@ class JsonParser:
         self.parse_phone_number()
         self.delete_picture()
         self.days_to_bd()
+        self.con = None
 
     def read_file(self):
         file = open('persons.json', encoding="utf8")
@@ -57,6 +59,11 @@ class JsonParser:
     def get_data(self):
         return self.data
 
+    def create_my_func(self, func):
+        self.con = sqlite3.connect('recruitment_db.db')
+        self.con.create_function("evaluate_password", 1, func)
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -66,10 +73,12 @@ if __name__ == '__main__':
                         choices=['general','female','male'])
     parser.add_argument("--most_common_cities", type=int, help="Get N most common cities")
     parser.add_argument("--most_common_passwords", type=int, help="Get N most common passwords")
-    pars = JsonParser()
+    parser.add_argument("--best_password", help="Get the best password", action='store_true')
     handle = DBHandler()
     args = parser.parse_args()
+    pars = JsonParser()
     if args.init:
+        pars = JsonParser()
         handle.initialize_database(pars.get_data())
     if args.percentage:
         handle.get_percentage()
@@ -85,6 +94,8 @@ if __name__ == '__main__':
             msg = "Wrong argument"
             raise argparse.ArgumentTypeError(msg)
         handle.get_common(args.most_common_passwords, 'password')
+    if args.best_password:
+        handle.get_best_password()
 
 
 
