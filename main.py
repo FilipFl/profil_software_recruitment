@@ -4,12 +4,20 @@ import calendar
 from db_handler import *
 import argparse
 import sqlite3
-
+import requests
 
 class JsonParser:
 
     def __init__(self):
         self.data = None
+
+    def load_from_api(self, api_response):
+        self.data = api_response
+        self.parse_phone_number()
+        self.delete_picture()
+        self.days_to_bd()
+
+    def load_from_file(self):
         self.read_file()
         self.parse_phone_number()
         self.delete_picture()
@@ -74,12 +82,15 @@ if __name__ == '__main__':
     parser.add_argument("--most_common_passwords", type=int, help="Get N most common passwords")
     parser.add_argument("--best_password", help="Get the best password", action='store_true')
     parser.add_argument("--born_between", type=str, help="Get people born between dates (Use format \"YYYY-MM-DD:YYYY-MM-DD\"")
-    parser.add_argument("--test", help="ble", action='store_true')
-    handle = DBHandler()
+    parser.add_argument("--load_from_api", type=int,help="Get data from API into database")
+    parser.add_argument("--how_many", help="Get amount of records", action='store_true')
+    parser.add_argument("--api_init", help="Initialize db with api response")
     args = parser.parse_args()
+    pars = JsonParser()
+    handle = DBHandler()
     if args.init:
-        pars = JsonParser()
-        handle.initialize_database(pars.get_data())
+        pars.load_from_file()
+        handle.dump_into_database(pars.get_data())
     if args.percentage:
         handle.get_percentage()
     if args.average_age:
@@ -108,8 +119,24 @@ if __name__ == '__main__':
             msg = "Wrong argument, try \"YYYY-MM-DD:YYYY-MM-DD\" format"
             raise argparse.ArgumentTypeError(msg)
         handle.get_between(start, end)
-
-
+    if args.load_from_api:
+        if args.load_from_api < 1:
+            msg = "Wrong argument"
+            raise argparse.ArgumentTypeError(msg)
+        else:
+            response = requests.get('https://randomuser.me/api/?results={}'.format(args.load_from_api))
+            if not response:
+                print('An error has occured.')
+            elif "error" in response.json():
+                print(response.json()['error'])
+            else:
+                pars.load_from_api(response.json())
+                if args.api_init:
+                    handle.dump_into_database(pars.get_data())
+                else:
+                    handle.dump_into_database(pars.get_data(), False)
+    if args.how_many:
+        handle.get_how_many()
 
 
 

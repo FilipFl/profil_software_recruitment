@@ -113,20 +113,18 @@ class Name(Model):
         database = SqliteDatabase('recruitment_db.db')
 
 
-
 class DBHandler:
 
     def __init__(self):
         self.db = SqliteDatabase('recruitment_db.db')
         self.db.connect()
-        self.special_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+        self.special_check = re.compile('[@_., -+=\'\"!#$%^&*()<>?/\|}{~:]')
 
-
-    def initialize_database(self, data):
-        self.db.create_tables([Person, Name, Location, Street, Coordinates, Timezone, Login, Dob, Registered, Idcolumn])
-        i = 0
+    def dump_into_database(self, data, initialization=True):
+        if initialization:
+            self.db.create_tables([Person, Name, Location, Street, Coordinates, Timezone, Login, Dob, Registered, Idcolumn])
         with self.db.atomic():
-            for record in data['results']:
+            for i, record in enumerate(data['results']):
                 print(i)
                 person_inst = Person.create(gender=record['gender'], email=record['email'], phone=record['phone'], cell=record['cell'],
                                                                                         nat=record['nat'], daysleft=record['daysleft'])
@@ -148,7 +146,6 @@ class DBHandler:
                     Idcolumn.create(name=record['id']['name'], value=record['id']['value'], person=person_inst)
                 else:
                     Idcolumn.create(name='', value='', person=person_inst)
-                i += 1
 
     def get_percentage(self):
         query = Person.select(fn.COUNT()).where(Person.gender == "female")
@@ -212,6 +209,8 @@ class DBHandler:
                 flags[1] = 2
             elif c.isdigit():
                 flags[2] = 1
+            elif not c.isascii():
+                flags[4] = 3
         return sum(flags)
 
     def parse_date(self, date_str):
@@ -227,6 +226,8 @@ class DBHandler:
         for element in query:
             print(element.name.first, element.name.last, element.person_id)
 
-
+    def get_how_many(self):
+        query = Person.select(fn.Count())
+        print(query.scalar())
 
 
